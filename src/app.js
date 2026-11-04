@@ -264,13 +264,13 @@ function renderGroup(){
     const evk = eventsOn(k);
     if (evk.length) label += ` 일정: ${evk.map(([,e])=>e.title).join(', ')}`;
     const cell = h('button',{class:cls,'aria-label':label,
-      onclick:()=>{ if (suppress) return; if (mode==='mine'){ if (past) toast('지난 날은 가능 체크 대신 길게 눌러 일정을 넣을 수 있어요'); else toggle(k); } else { selected = selected===k?null:k; render(); } },
+      onclick:()=>{ if (suppress) return; if (mode==='mine') toggle(k); else { selected = selected===k?null:k; render(); } },
       onpointerdown:(e)=>startPress(e,k), onpointermove:movePress, onpointerup:endPress, onpointercancel:endPress, onpointerleave:endPress,
       oncontextmenu:(e)=>{ e.preventDefault(); endPress(); openDay(k); }},
       h('span',{class:'n'},d),
       evChips(evk),
       nameList(c));
-    if (mode==='all' && !past && n){
+    if (mode==='all' && n){
       const r = (c.yes.length + c.maybe.length*0.4)/n;
       if (r>0) cell.style.background = `rgba(var(--heat),${(0.1+r*0.55).toFixed(2)})`;
     }
