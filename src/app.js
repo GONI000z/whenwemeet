@@ -263,10 +263,10 @@ function renderGroup(){
     }
     const evk = eventsOn(k);
     if (evk.length) label += ` 일정: ${evk.map(([,e])=>e.title).join(', ')}`;
-    const cell = h('button',{class:cls,disabled:past,'aria-label':label,
-      onclick:()=>{ if (suppress) return; if (mode==='mine') toggle(k); else { selected = selected===k?null:k; render(); } },
+    const cell = h('button',{class:cls,'aria-label':label,
+      onclick:()=>{ if (suppress) return; if (mode==='mine'){ if (past) toast('지난 날은 가능 체크 대신 길게 눌러 일정을 넣을 수 있어요'); else toggle(k); } else { selected = selected===k?null:k; render(); } },
       onpointerdown:(e)=>startPress(e,k), onpointermove:movePress, onpointerup:endPress, onpointercancel:endPress, onpointerleave:endPress,
-      oncontextmenu:(e)=>{ e.preventDefault(); endPress(); if (!past) openDay(k); }},
+      oncontextmenu:(e)=>{ e.preventDefault(); endPress(); openDay(k); }},
       h('span',{class:'n'},d),
       evChips(evk),
       nameList(c));
