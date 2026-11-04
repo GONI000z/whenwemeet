@@ -29,7 +29,6 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - uses: android-actions/setup-android@v3
 
       - name: 패키지 설치와 웹 파일 만들기
         run: |
