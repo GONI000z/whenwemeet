@@ -302,8 +302,8 @@ function renderGroup(){
     const own = e.by===me;
     el.append(h(own?'button':'div',{class:'bitem',onclick: own ? ()=>openSheet({id,...e}) : null},
       tint(h('span',{class:'d'}, range(e.start,e.end)), e.by),
-      h('span',{class:'evtitle'}, e.title),
-      h('span',{class:'who',style:'font-size:12px'}, own ? '내 일정 ›' : (by ? by.nick : ''))));
+      h('span',{class:'evtitle'}, e.title, by ? h('small',{}, by.nick) : null),
+      h('span',{class:'who',style:'font-size:12px'}, own ? '내 일정 ›' : '')));
   }
   kids.push(h('section',{class:'panel'}, h('div',{class:'panel-head'}, h('h2',{},'기타 일정'), h('button',{disabled:!canWrite,onclick:()=>openSheet({start: selected && selected>=tk ? selected : tk})},'+ 일정 추가')), el));
 
@@ -483,8 +483,8 @@ function renderDay(root){
     const own = e.by===me, by = members[e.by];
     box.append(h(own?'button':'div',{class:'bitem',onclick: own ? ()=>openSheet({id,...e,back:k}) : null},
       tint(h('span',{class:'d'}, e.start===e.end ? '하루' : `${short(e.start)} ~ ${short(e.end)}`), e.by),
-      h('span',{class:'evtitle'}, e.title),
-      h('span',{class:'who',style:'font-size:12px'}, own ? '수정 ›' : (by ? by.nick : ''))));
+      h('span',{class:'evtitle'}, e.title, by ? h('small',{}, by.nick) : null),
+      h('span',{class:'who',style:'font-size:12px'}, own ? '수정 ›' : '')));
   }
   root.replaceChildren(sheetShell(fmt(k),
     h('div',{class:'panel-head'}, h('span',{class:'sub',style:'margin:0'},'기타 일정'),
