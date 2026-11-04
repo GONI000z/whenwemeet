@@ -227,7 +227,7 @@ function renderGroup(){
 
   // header
   kids.push(h('div',{class:'top'},
-    h('div',{style:'min-width:0'}, h('button',{class:'ghost',onclick:goHome,style:'margin-left:-8px'},'‹ 내 모임'), h('h1',{},group.name)),
+    h('div',{style:'min-width:0'}, h('button',{class:'ghost',onclick:goHome,style:'margin-left:-8px'},'‹ 내 모임'), h('button',{class:'title-btn','aria-label':'모임 이름 바꾸기',onclick:()=>{ if (!members[me]) return toast('모임에 참여한 뒤 바꿀 수 있어요'); sheet={mode:'gname'}; renderSheet(); }}, h('h1',{},group.name), h('span',{class:'pen','aria-hidden':'true'},'✎'))),
     members[me] ? h('button',{class:'me-btn','aria-label':'내 이름 변경',onclick:()=>{ if (!canWrite) return toast('보기 전용이라 바꿀 수 없어요'); sheet={mode:'nick'}; renderSheet(); }}, avatar(me, members[me].nick), members[me].nick, h('span',{style:'color:var(--muted);font-weight:500'},'· 이름 변경')) : null
   ));
   // invite + members
@@ -381,6 +381,7 @@ function renderSheet(){
   if (sheet.mode==='day') return renderDay(root);
   if (sheet.mode==='nick') return renderNick(root);
   if (sheet.mode==='month') return renderMonth(root);
+  if (sheet.mode==='gname') return renderGName(root);
   const t = h('input',{id:'evTitle',maxlength:'30',value:sheet.title});
   const s = h('input',{id:'evStart',type:'date',value:sheet.start});
   const e = h('input',{id:'evEnd',type:'date',value:sheet.end,min:sheet.start});
@@ -413,6 +414,28 @@ function renderSheet(){
     h('div',{class:'two'}, h('label',{for:'evStart'},'시작',s), h('label',{for:'evEnd'},'끝 (하루면 그대로)',e)),
     err,
     h('div',{class:'row'}, saveBtn, h('button',{class:'ghost',onclick:done},'취소'), delBtn)));
+}
+function renderGName(root){
+  const cur = group.name || '';
+  const inp = h('input',{id:'gnameInput',maxlength:'30',value:cur});
+  const err = h('p',{class:'note warn',hidden:true});
+  const save = h('button',{class:'primary',onclick:async()=>{
+    const name = inp.value.trim();
+    if (!name){ err.textContent='모임 이름을 적어 주세요.'; err.hidden=false; return; }
+    if (name===cur) return closeSheet();
+    save.disabled = true;
+    try{
+      await db.doc('groups/'+gid).update({ name });
+      const li = myList.groups.find(g=>g.id===gid); if (li){ li.name = name; saveMyList(); }
+      toast('모임 이름을 바꿨어요'); closeSheet();
+    }catch(x){ console.error(x); save.disabled=false; err.textContent='바꾸지 못했어요. 인터넷 연결을 확인해 주세요.'; err.hidden=false; }
+  }},'저장');
+  inp.addEventListener('keydown',(e)=>{ if (e.key==='Enter') save.click(); });
+  root.replaceChildren(sheetShell('모임 이름 바꾸기',
+    h('p',{class:'sub',style:'margin:0'},'바꾸면 모임의 모든 사람에게 새 이름으로 보여요.'),
+    h('label',{for:'gnameInput'},'모임 이름',inp), err,
+    h('div',{class:'row'}, save, h('button',{class:'ghost',onclick:closeSheet},'취소'))));
+  setTimeout(()=>inp.focus(),60);
 }
 function renderMonth(root){
   const cy = cursor.getFullYear(), cm = cursor.getMonth();

@@ -18,9 +18,13 @@ service cloud.firestore {
     match /groups/{groupId} {
       allow get: if signedIn();
       allow create: if signedIn() && request.resource.data.owner == uid();
-      allow update: if signedIn() && resource.data.owner == uid()
-                    && request.resource.data.owner == resource.data.owner
-                    && request.resource.data.code == resource.data.code;
+      // 모임 구성원은 누구나 모임 이름만 바꿀 수 있다
+      allow update: if signedIn()
+                    && exists(/databases/$(database)/documents/groups/$(groupId)/members/$(uid()))
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.name.size() <= 30;
 
       // 구성원별 가능한 날짜와 이름: 본인 것만 쓴다
       match /members/{memberId} {
