@@ -45,17 +45,23 @@ jobs:
       - name: 웹 파일을 안드로이드로 복사
         run: npx cap sync android
 
-      - name: 항상 같은 서명 키 쓰기 (업데이트 설치가 되도록)
-        run: |
-          mkdir -p ~/.android
-          cp keystore/debug.keystore ~/.android/debug.keystore
-
       - name: APK 빌드
         working-directory: android
         run: |
+          sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"1.${{ github.run_number }}\"/" app/build.gradle
+          grep -E "versionCode|versionName" app/build.gradle
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
-          cp app/build/outputs/apk/debug/app-debug.apk ../uri-eonje-mannal.apk
+
+      - name: 항상 같은 서명 키로 다시 서명 (업데이트 설치가 되도록)
+        run: |
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/apksigner" sign \
+            --ks keystore/debug.keystore --ks-pass pass:android \
+            --ks-key-alias androiddebugkey --key-pass pass:android \
+            --out uri-eonje-mannal.apk \
+            android/app/build/outputs/apk/debug/app-debug.apk
+          "$BT/apksigner" verify --print-certs uri-eonje-mannal.apk | grep -i sha-256
 
       - name: 빌드 결과 보관
         uses: actions/upload-artifact@v4
