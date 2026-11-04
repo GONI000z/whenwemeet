@@ -276,14 +276,14 @@ function renderGroup(){
     }
     grid.append(cell);
   }
-  const prevDisabled = isThisMonth;
+  const prevDisabled = false;
   kids.push(h('section',{class:'panel'},
     h('div',{class:'tabs',role:'group'},
       h('button',{'aria-pressed':String(mode==='mine'),onclick:()=>{mode='mine';render();}},'내 가능일 체크'),
       h('button',{'aria-pressed':String(mode==='all'),onclick:()=>{mode='all';render();}},'겹치는 날 보기')),
     h('div',{class:'cal-head'},
       h('button',{class:'ghost',disabled:prevDisabled,'aria-label':'이전 달',onclick:()=>{cursor=new Date(y,mo-1,1);selected=null;render();}},'‹'),
-      h('h2',{},`${y}년 ${mo+1}월`),
+      h('button',{class:'month-btn','aria-label':'연도와 월 고르기',onclick:()=>{ sheet={mode:'month', year:y}; renderSheet(); }}, h('h2',{},`${y}년 ${mo+1}월`), h('span',{class:'caret','aria-hidden':'true'},'▾')),
       h('button',{class:'ghost','aria-label':'다음 달',onclick:()=>{cursor=new Date(y,mo+1,1);selected=null;render();}},'›')),
     grid,
     mode==='mine'
@@ -380,6 +380,7 @@ function renderSheet(){
   if (!sheet){ root.replaceChildren(); return; }
   if (sheet.mode==='day') return renderDay(root);
   if (sheet.mode==='nick') return renderNick(root);
+  if (sheet.mode==='month') return renderMonth(root);
   const t = h('input',{id:'evTitle',maxlength:'30',value:sheet.title});
   const s = h('input',{id:'evStart',type:'date',value:sheet.start});
   const e = h('input',{id:'evEnd',type:'date',value:sheet.end,min:sheet.start});
@@ -412,6 +413,24 @@ function renderSheet(){
     h('div',{class:'two'}, h('label',{for:'evStart'},'시작',s), h('label',{for:'evEnd'},'끝 (하루면 그대로)',e)),
     err,
     h('div',{class:'row'}, saveBtn, h('button',{class:'ghost',onclick:done},'취소'), delBtn)));
+}
+function renderMonth(root){
+  const cy = cursor.getFullYear(), cm = cursor.getMonth();
+  const now = new Date(), ny = now.getFullYear(), nm = now.getMonth();
+  const yr = sheet.year;
+  const go = (yy, mm)=>{ cursor = new Date(yy, mm, 1); selected = null; closeSheet(); render(); };
+  const grid = h('div',{class:'mgrid'});
+  for (let m=0; m<12; m++){
+    const cls = 'mcell' + (yr===cy && m===cm ? ' on' : '') + (yr===ny && m===nm ? ' now' : '');
+    grid.append(h('button',{class:cls,onclick:()=>go(yr,m)}, `${m+1}월`));
+  }
+  root.replaceChildren(sheetShell('연도와 월 고르기',
+    h('div',{class:'yrow'},
+      h('button',{class:'ghost','aria-label':'이전 해',onclick:()=>{ sheet.year--; renderSheet(); }},'‹'),
+      h('strong',{class:'yval'},`${yr}년`),
+      h('button',{class:'ghost','aria-label':'다음 해',onclick:()=>{ sheet.year++; renderSheet(); }},'›')),
+    grid,
+    h('div',{class:'row'}, h('button',{onclick:()=>go(ny,nm)},'이번 달로'), h('button',{class:'ghost',onclick:closeSheet},'닫기'))));
 }
 function renderNick(root){
   const cur = (members[me] && members[me].nick) || '';
