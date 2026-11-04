@@ -1,0 +1,8 @@
+{
+  "appId": "com.whenwemeet.app",
+  "appName": "우리 언제 만나",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#f3f5f8"
+  }
+}

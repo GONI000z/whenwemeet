@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function uid() { return request.auth.uid; }
+
+    // 내가 참여한 모임 목록: 나만 읽고 쓴다
+    match /users/{userId} {
+      allow read, write: if signedIn() && uid() == userId;
+    }
+
+    // 초대 코드 → 모임 연결: 만들 수만 있고 고치거나 지울 수 없다
+    match /codes/{code} {
+      allow get: if signedIn();
+      allow create: if signedIn() && request.resource.data.keys().hasOnly(['gid']);
+    }
+
+    match /groups/{groupId} {
+      allow get: if signedIn();
+      allow create: if signedIn() && request.resource.data.owner == uid();
+      allow update: if signedIn() && resource.data.owner == uid()
+                    && request.resource.data.owner == resource.data.owner
+                    && request.resource.data.code == resource.data.code;
+
+      // 구성원별 가능한 날짜와 이름: 본인 것만 쓴다
+      match /members/{memberId} {
+        allow read: if signedIn();
+        allow create, update, delete: if signedIn() && uid() == memberId;
+      }
+
+      // 기타 일정: 등록한 사람만 고치고 지운다
+      match /events/{eventId} {
+        allow read: if signedIn();
+        allow create: if signedIn() && request.resource.data.by == uid();
+        allow update: if signedIn() && resource.data.by == uid() && request.resource.data.by == uid();
+        allow delete: if signedIn() && resource.data.by == uid();
+      }
+    }
+  }
+}
