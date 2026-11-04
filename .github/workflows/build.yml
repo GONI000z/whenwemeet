@@ -68,10 +68,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest uri-eonje-mannal.apk \
-            --title "우리 언제 만나 (최신)" \
-            --notes "안드로이드 폰에서 uri-eonje-mannal.apk 를 눌러 받은 뒤 설치하세요. 아이폰은 ${{ env.WEB_URL }} 을 Safari로 열고 '홈 화면에 추가' 하세요." \
-            --target ${{ github.sha }}
+          sleep 5
+          for i in 1 2 3 4; do
+            if gh release create latest uri-eonje-mannal.apk \
+              --title "우리 언제 만나 (최신)" \
+              --notes "안드로이드 폰에서 uri-eonje-mannal.apk 를 눌러 받은 뒤 설치하세요. 아이폰은 ${{ env.WEB_URL }} 을 Safari로 열고 '홈 화면에 추가' 하세요." \
+              --target ${{ github.sha }}; then exit 0; fi
+            echo "잠시 후 다시 시도 ($i)"; sleep $((i * 10))
+            gh release delete latest --yes --cleanup-tag || true
+          done
+          exit 1
 
   web:
     name: 아이폰·웹 버전
