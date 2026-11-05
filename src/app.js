@@ -270,8 +270,8 @@ function renderGroup(){
       h('span',{class:'n'},d),
       evChips(evk),
       nameList(c));
-    if (mode==='all' && n){
-      const r = (c.yes.length + c.maybe.length*0.4)/n;
+    if (mode==='all' && n && c.yes.length >= 2){   // 2명 이상 겹친 날만 색칠
+      const r = c.yes.length/n;
       if (r>0) cell.style.background = `rgba(var(--heat),${(0.1+r*0.55).toFixed(2)})`;
     }
     grid.append(cell);
@@ -289,7 +289,7 @@ function renderGroup(){
     mode==='mine'
       ? h('div',{class:'legend'}, h('span',{},'되는 날을 누르면 ',h('b',{style:'color:var(--yes)'},'가능'),', 한 번 더 누르면 취소. 길게 누르면 ',h('b',{style:'color:var(--ev)'},'그날 일정'),' 보기')
       , h('span',{class:'status',style:'margin-left:auto'}, saving||pending ? '저장 중…' : (members[me]?'저장됨':'')))
-      : h('div',{class:'legend'}, h('span',{},'진할수록 많이 겹쳐요. 날짜를 누르면 전체 명단이, 길게 누르면 그날 일정이 보여요.')),
+      : h('div',{class:'legend'}, h('span',{},'2명 이상 겹친 날만 색칠되고, 진할수록 많이 겹쳐요. 날짜를 누르면 전체 명단이, 길게 누르면 그날 일정이 보여요.')),
     mode==='all' && selected ? detail(selected, t[selected], list) : null
   ));
 
